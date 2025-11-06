@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>UpstreamTest - Seamless Integration Testing</title>
+
+        <!-- Load Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- Load Google Font (Inter) -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+            rel="stylesheet"
+        />
+
+        <style>
+            /* Set the default font for the page */
+            body {
+                font-family: "Inter", sans-serif;
+            }
+
+            /* Custom "glow" effect for the hero text */
+            .hero-glow {
+                text-shadow:
+                    0 0 20px rgba(168, 85, 247, 0.5),
+                    0 0 8px rgba(139, 92, 246, 0.3);
+            }
+
+            /* Basic prose styles for text sections for better readability */
+            .prose {
+                color: #d1d5db; /* gray-300 */
+            }
+            .prose h2 {
+                color: #ffffff; /* white */
+            }
+            .prose p {
+                font-size: 1.125rem; /* text-lg */
+                line-height: 1.75rem;
+                color: #94a3b8; /* slate-400 */
+            }
+            .prose code {
+                color: #c084fc; /* purple-400 */
+                background-color: #334155; /* slate-700 */
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.375rem; /* rounded-md */
+                font-weight: 600;
+            }
+        </style>
+    </head>
+    <body class="bg-slate-900 text-gray-300 antialiased">
+        <!-- Main Container -->
+        <div class="container mx-auto px-4 py-16 md:py-24 max-w-5xl">
+            <!-- Hero Section -->
+            <header class="text-center mb-20 md:mb-32">
+                <h1
+                    class="text-5xl md:text-7xl font-extrabold text-white mb-4 hero-glow"
+                >
+                    <span
+                        class="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent"
+                        >Upstream</span
+                    >Test
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-400 max-w-2xl mx-auto">
+                    Stop guessing. Start knowing. Validate your upstream APIs,
+                    microservices, and data contracts with confidence.
+                </p>
+            </header>
+
+            <!-- Main Content - Sections -->
+            <main class="space-y-20 md:space-y-28">
+                <!-- Section 1: Health Checks -->
+                <section
+                    class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center"
+                >
+                    <!-- Text Content -->
+                    <div class="prose max-w-none">
+                        <h2 class="text-3xl font-bold mb-3">
+                            1. Create a test
+                        </h2>
+                        <p>
+                            Create a test in Upstream Test, and keep the
+                            generated id for future use.
+                        </p>
+                        <p>
+                            Define what "healthy" means—from a simple
+                            <code>200 OK</code> to a specific JSON body—and let
+                            <code>UpstreamTest</code> handle the rest.
+                        </p>
+                    </div>
+                    <!-- Code Snippet -->
+                    <div
+                        class="bg-slate-800/70 rounded-xl p-5 md:p-6 shadow-2xl shadow-black/30 border border-slate-700 backdrop-blur-sm"
+                    >
+                        <pre
+                            class="font-mono text-sm text-white overflow-x-auto"
+                        ><code class="language-shell">
+curl -X POST https://upstr.dev/tests \
+  -H "Content-Type: application/yaml" \
+  --data-binary @- << EOF
+
+tests:
+  - name: test host name
+    path: /get
+    verb: get
+    assertions:
+      - $.headers.Host===httpbin.org
+EOF
+                        </code></pre>
+                    </div>
+                </section>
+
+                <!-- Section 2: Contract Validation -->
+                <section
+                    class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center"
+                >
+                    <!-- Text Content -->
+                    <div class="prose max-w-none md:order-last">
+                        <!-- `md:order-last` flips layout -->
+                        <h2 class="text-3xl font-bold mb-3">
+                            Validate API Contracts
+                        </h2>
+                        <p>
+                            Ensure upstream APIs haven't introduced breaking
+                            changes. Define a JSON schema for the expected
+                            response and <code>UpstreamTest</code> will alert
+                            you if a field is missing, a data type changes, or a
+                            new field is added.
+                        </p>
+                        <p>
+                            Catch errors before they break your application in
+                            production.
+                        </p>
+                    </div>
+                    <!-- Code Snippet -->
+                    <div
+                        class="bg-slate-800/70 rounded-xl p-5 md:p-6 shadow-2xl shadow-black/30 border border-slate-700 backdrop-blur-sm md:order-first"
+                    >
+                        <!-- `md:order-first` flips layout -->
+                        <pre
+                            class="font-mono text-sm text-white overflow-x-auto"
+                        ><code class="language-yaml"><span class="text-gray-500"># test/user-contract.yml</span>
+<span class="text-purple-400">service</span>: <span class="text-green-300">"user-service"</span>
+<span class="text-purple-400">endpoint</span>: <span class="text-green-300">"/users/123"</span>
+<span class="text-purple-400">
+schema</span>:
+  <span class="text-purple-400">type</span>: <span class="text-green-300">"object"</span>
+  <span class="text-purple-400">properties</span>:
+    <span class="text-purple-400">id</span>: { <span class="text-purple-400">type</span>: <span class="text-green-300">"number"</span> }
+    <span class="text-purple-400">email</span>: { <span class="text-purple-400">type</span>: <span class="text-green-300">"string"</span>, <span class="text-purple-400">format</span>: <span class="text-green-300">"email"</span> }
+    <span class="text-purple-400">createdAt</span>: { <span class="text-purple-400">type</span>: <span class="text-green-300">"string"</span>, <span class="text-purple-400">format</span>: <span class="text-green-300">"date-time"</span> }
+  <span class="text-purple-400">required</span>: [<span class="text-green-300">"id"</span>, <span class="text-green-300">"email"</span>]
+
+<span class="text-gray-500">> upstream test --contract test/user-contract.yml</span>
+<span class="text-red-400">✖</span> <span class="text-white">user-service... </span><span class="text-red-400">FAIL</span>
+  <span class="text-gray-400">- Response failed schema validation:</span>
+  <span class="text-gray-400">  - Missing required property: 'email'</span></code></pre>
+                    </div>
+                </section>
+
+                <!-- Section 3: CI/CD Integration -->
+                <section
+                    class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center"
+                >
+                    <!-- Text Content -->
+                    <div class="prose max-w-none">
+                        <h2 class="text-3xl font-bold mb-3">
+                            Integrate with your CI/CD
+                        </h2>
+                        <p>
+                            Block bad deployments before they happen. Run
+                            <code>upstream test</code> as a required step in
+                            your GitHub Actions, GitLab CI, or Jenkins pipeline.
+                        </p>
+                        <p>
+                            The CLI is designed to exit with a non-zero code on
+                            failure, halting any pipeline and preventing
+                            integration issues from shipping.
+                        </p>
+                    </div>
+                    <!-- Code Snippet -->
+                    <div
+                        class="bg-slate-800/70 rounded-xl p-5 md:p-6 shadow-2xl shadow-black/30 border border-slate-700 backdrop-blur-sm"
+                    >
+                        <pre
+                            class="font-mono text-sm text-white overflow-x-auto"
+                        ><code class="language-yaml"><span class="text-gray-500"># .github/workflows/ci.yml</span>
+<span class="text-purple-400">name</span>: <span class="text-green-300">"CI Pipeline"</span>
+<span class="text-purple-400">on</span>: <span class="text-green-300">[push]</span>
+
+<span class="text-purple-400">jobs</span>:
+  <span class="text-purple-400">integration-test</span>:
+    <span class="text-purple-400">runs-on</span>: <span class="text-green-300">"ubuntu-latest"</span>
+    <span class="text-purple-400">steps</span>:
+      - <span class="text-purple-400">name</span>: <span class="text-green-300">"Checkout code"</span>
+        <span class="text-purple-400">uses</span>: <span class="text-green-300">"actions/checkout@v4"</span>
+
+      - <span class="text-purple-400">name</span>: <span class="text-green-300">"Install UpstreamTest"</span>
+        <span class="text-purple-400">run</span>: <span class="text-blue-400">npm install -g upstream-test</span>
+
+      - <span class="text-purple-400">name</span>: <span class="text-green-300">"Run Upstream Tests"</span>
+        <span class="text-purple-400">run</span>: |
+          <span class="text-gray-400"># Run all tests in the ./upstream-tests/ folder</span>
+          <span class="text-blue-400">upstream test ./upstream-tests/</span>
+</code></pre>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Footer -->
+            <footer
+                class="text-center text-slate-500 border-t border-slate-700 mt-24 md:mt-32 pt-10"
+            >
+                <p class="font-semibold">
+                    &copy; <span id="footer-year"></span> UpstreamTest
+                </p>
+                <p class="text-sm">Stop guessing. Start knowing.</p>
+            </footer>
+        </div>
+
+        <script>
+            // Set the current year in the footer
+            document.getElementById("footer-year").textContent =
+                new Date().getFullYear();
+        </script>
+    </body>
+</html>

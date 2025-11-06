@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Modern Test Results Dashboard</title>
+        <!-- Load Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            /* Custom styles for the traffic lights and theme adjustments */
+            :root {
+                --bg-dark: #0f172a; /* Slate 900 */
+                --card-dark: #1e293b; /* Slate 800 */
+                --accent-blue: #3b82f6; /* Blue 500 */
+                --pass-green: #10b981; /* Emerald 500 */
+                --fail-red: #ef4444; /* Red 500 */
+                --skip-yellow: #f59e0b; /* Amber 500 */
+            }
+
+            body {
+                background-color: var(--bg-dark);
+                color: #e2e8f0; /* Light text */
+                font-family: "Inter", sans-serif;
+            }
+
+            /* Traffic Light Styling */
+            .traffic-light {
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                margin-right: 8px;
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+                transition: transform 0.2s;
+                flex-shrink: 0; /* Prevents squishing in flex layout */
+            }
+
+            .traffic-light.pass {
+                background-color: var(--pass-green);
+            }
+            .traffic-light.fail {
+                background-color: var(--fail-red);
+            }
+            .traffic-light.skip,
+            .traffic-light.pending {
+                background-color: var(--skip-yellow);
+            }
+
+            /* Suite Item Active/Hover */
+            .suite-item {
+                border-left: 4px solid transparent;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .suite-item:hover {
+                background-color: #334155; /* Slate 700 */
+            }
+            .suite-item.active {
+                border-left-color: var(--accent-blue);
+                background-color: #334155; /* Slate 700 */
+                font-weight: 600;
+            }
+
+            /* Result Card Border */
+            .result-card.pass {
+                border-left-color: var(--pass-green);
+            }
+            .result-card.fail {
+                border-left-color: var(--fail-red);
+            }
+
+            .result-status-badge.pass {
+                background-color: var(--pass-green);
+            }
+            .result-status-badge.fail {
+                background-color: var(--fail-red);
+            }
+
+            /* Responsive Layout for smaller screens */
+            @media (max-width: 768px) {
+                #dashboard-container {
+                    flex-direction: column;
+                }
+                #test-list {
+                    width: 100%;
+                }
+                #test-details {
+                    margin-top: 20px;
+                    min-height: 400px;
+                }
+            }
+        </style>
+    </head>
+    <body class="p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <header class="mb-8">
+                <h1 class="text-4xl font-extrabold text-white mb-2">
+                    Upstream Test Results
+                </h1>
+                <p class="text-gray-400">
+                    Real-time status view of all automated test suites.
+                </p>
+            </header>
+
+            <div
+                id="dashboard-container"
+                class="flex flex-col md:flex-row gap-6"
+            >
+                <!-- Left Panel: Test Suite List -->
+                <div
+                    id="test-list"
+                    class="w-full md:w-1/3 bg-card-dark rounded-xl shadow-lg p-5"
+                >
+                    <h2
+                        class="text-2xl font-semibold border-b border-gray-700 pb-3 mb-4 text-accent-blue"
+                    >
+                        Test Suites
+                    </h2>
+                    <div id="suite-container" class="space-y-1">
+                        <!-- Suites rendered here -->
+                        <p
+                            class="text-gray-500 text-center p-4"
+                            id="loading-message"
+                        >
+                            Loading data...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Test Details -->
+                <div
+                    id="test-details"
+                    class="w-full md:w-2/3 bg-card-dark rounded-xl shadow-lg p-6"
+                >
+                    <h2
+                        class="text-2xl font-semibold border-b border-gray-700 pb-3 mb-4 text-accent-blue"
+                    >
+                        Result Details
+                    </h2>
+                    <div id="details-content">
+                        <p class="text-gray-400 p-8 text-center">
+                            Select a Test Suite from the left panel to view
+                            detailed execution results.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Sample Test Data (Using the provided format and adding a few extra cases for demonstration)
+            let rawTestData = {
+                results: {
+                    "api-host-validation-service-A": [
+                        {
+                            reportFormat: "CTRF",
+                            extra: {
+                                testCase: "api-host-validation-service-A",
+                            },
+                            results: {
+                                tool: { name: "apigee" },
+                                summary: {
+                                    tests: 3,
+                                    passed: 2,
+                                    failed: 1,
+                                    start: 1762428056392,
+                                    stop: 1762428056396,
+                                },
+                                tests: [
+                                    {
+                                        name: "$.status_code === 200",
+                                        status: "passed",
+                                        duration: 2,
+                                    },
+                                    {
+                                        name: '$.headers.Host==="httpbin.org"',
+                                        status: "failed",
+                                        message:
+                                            "Value didn't match: httpbin.org (Found: api.internal.net)",
+                                        duration: 0,
+                                    },
+                                    {
+                                        name: "Latency Check < 50ms",
+                                        status: "passed",
+                                        duration: 2,
+                                    },
+                                ],
+                            },
+                        },
+                        {
+                            reportFormat: "CTRF",
+                            extra: {
+                                testCase: "api-host-validation-service-A",
+                            },
+                            results: {
+                                tool: { name: "apigee" },
+                                summary: {
+                                    tests: 1,
+                                    passed: 1,
+                                    failed: 0,
+                                    start: 1762428140453,
+                                    stop: 1762428140454,
+                                },
+                                tests: [
+                                    {
+                                        name: "$.headers.Host===httpbin.org",
+                                        status: "passed",
+                                        duration: 0,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                    "database-integrity-check-B": [
+                        {
+                            reportFormat: "CTRF",
+                            extra: { testCase: "database-integrity-check-B" },
+                            results: {
+                                tool: { name: "SQLRunner" },
+                                summary: {
+                                    tests: 5,
+                                    passed: 5,
+                                    failed: 0,
+                                    start: 1762428500000,
+                                    stop: 1762428500800,
+                                },
+                                tests: [
+                                    {
+                                        name: "User table record count check",
+                                        status: "passed",
+                                        duration: 150,
+                                    },
+                                    {
+                                        name: "Index existence validation",
+                                        status: "passed",
+                                        duration: 50,
+                                    },
+                                    {
+                                        name: "Schema version compatibility",
+                                        status: "passed",
+                                        duration: 100,
+                                    },
+                                    {
+                                        name: "PK constraint check",
+                                        status: "passed",
+                                        duration: 200,
+                                    },
+                                    {
+                                        name: "FK constraint check",
+                                        status: "passed",
+                                        duration: 100,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                    "third-party-api-latency": [
+                        {
+                            reportFormat: "CTRF",
+                            extra: { testCase: "third-party-api-latency" },
+                            results: {
+                                tool: { name: "Monitor" },
+                                summary: {
+                                    tests: 2,
+                                    passed: 1,
+                                    failed: 1,
+                                    start: 1762429000000,
+                                    stop: 1762429001500,
+                                },
+                                tests: [
+                                    {
+                                        name: "Endpoint 1 availability",
+                                        status: "passed",
+                                        duration: 500,
+                                    },
+                                    {
+                                        name: "Endpoint 2 response time < 1s",
+                                        status: "failed",
+                                        message:
+                                            "Latency was 1250ms, exceeding threshold.",
+                                        duration: 1250,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                },
+            };
+
+            /**
+             * Converts status string to a Tailwind/CSS class name.
+             * @param {string} status - The raw status string ('passed', 'failed', etc.).
+             * @returns {string} The normalized status class ('pass', 'fail', 'skip').
+             */
+            function getStatusClass(status) {
+                if (!status) return "pending";
+                const lower = status.toLowerCase();
+                if (lower.includes("pass")) return "pass";
+                if (lower.includes("fail")) return "fail";
+                return "skip"; // Includes 'skipped', 'pending', etc.
+            }
+
+            /**
+             * Calculates the overall status of a test suite.
+             * If any run within the suite contains a failure, the suite is 'fail'.
+             * @param {string} testKey - The name of the test suite.
+             * @returns {string} 'pass', 'fail', or 'pending'
+             */
+            function getSuiteStatus(testKey) {
+                const runs = rawTestData.results[testKey];
+                if (!runs || runs.length === 0) return "pending";
+
+                const hasFailure = runs.some(
+                    (run) => run.results.summary.failed > 0,
+                );
+                return hasFailure ? "fail" : "pass";
+            }
+
+            /**
+             * Formats a Unix timestamp (ms) to a readable date/time string.
+             * @param {number} timestamp - The timestamp in milliseconds.
+             * @returns {string} Formatted date string.
+             */
+            function formatDate(timestamp) {
+                if (!timestamp) return "N/A";
+                return new Date(timestamp).toLocaleString();
+            }
+
+            /**
+             * Renders the detailed results for a selected test suite in the right panel.
+             * @param {string} testKey - The name of the selected test suite.
+             */
+            function renderTestDetails(testKey) {
+                const detailsContent =
+                    document.getElementById("details-content");
+                const runs = rawTestData.results[testKey];
+
+                detailsContent.innerHTML = ""; // Clear previous content
+
+                if (!runs || runs.length === 0) {
+                    detailsContent.innerHTML = `<p class="text-gray-400 p-8 text-center">No run results available for ${testKey}.</p>`;
+                    return;
+                }
+
+                runs.forEach((run, index) => {
+                    const summary = run.results.summary;
+                    const runStatus = summary.failed > 0 ? "fail" : "pass";
+                    const statusClass = getStatusClass(runStatus);
+                    const durationMs = summary.stop - summary.start;
+
+                    const card = document.createElement("div");
+                    card.className = `result-card ${statusClass} rounded-lg shadow-xl p-5 mb-6 border-l-4 transition-shadow hover:shadow-2xl`;
+
+                    const testCasesHtml = run.results.tests
+                        .map((testCase) => {
+                            const caseStatusClass = getStatusClass(
+                                testCase.status,
+                            );
+                            const messageHtml = testCase.message
+                                ? `<span class="text-gray-400 mt-1 block">Message: ${testCase.message}</span>`
+                                : "";
+
+                            return `
+                    <div class="p-3 bg-gray-700/50 rounded-md mb-2 text-sm border border-gray-700/80">
+                        <div class="flex items-center">
+                            <span class="traffic-light ${caseStatusClass}"></span>
+                            <span class="font-bold text-lg mr-3 w-20 text-${caseStatusClass === "pass" ? "emerald" : "red"}-400">${testCase.status.toUpperCase()}</span>
+                            <span class="flex-1">${testCase.name}</span>
+                            <span class="text-gray-400 ml-4">${testCase.duration}ms</span>
+                        </div>
+                        ${messageHtml}
+                    </div>
+                `;
+                        })
+                        .join("");
+
+                    card.innerHTML = `
+                <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-white">
+                        Run #${runs.length - index}
+                        <span class="text-base font-normal text-gray-400">(${formatDate(summary.start)})</span>
+                    </h3>
+                    <span class="result-status-badge ${statusClass} text-white text-sm font-semibold px-3 py-1 rounded-full shadow-md">
+                        ${runStatus.toUpperCase()}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-gray-300 mb-4">
+                    <p><strong>Total Tests:</strong> <span class="text-white">${summary.tests}</span></p>
+                    <p><strong>Duration:</strong> <span class="text-white">${durationMs}ms</span></p>
+                    <p><strong>Passed:</strong> <span class="text-pass-green">${summary.passed}</span></p>
+                    <p><strong>Failed:</strong> <span class="text-fail-red">${summary.failed}</span></p>
+                </div>
+
+                <h4 class="text-lg font-semibold mt-6 mb-3 text-gray-200">Individual Test Cases:</h4>
+                <div class="space-y-2">
+                    ${testCasesHtml}
+                </div>
+            `;
+
+                    detailsContent.appendChild(card);
+                });
+            }
+
+            /**
+             * Renders the list of test suites in the left panel and sets up click handlers.
+             */
+            function renderTestList() {
+                const suiteContainer =
+                    document.getElementById("suite-container");
+                const testKeys = Object.keys(rawTestData.results).sort();
+
+                suiteContainer.innerHTML = ""; // Clear loading message
+
+                if (testKeys.length === 0) {
+                    suiteContainer.innerHTML =
+                        '<p class="text-gray-500 p-4">No test suites found in the data.</p>';
+                    return;
+                }
+
+                testKeys.forEach((key) => {
+                    const suiteStatus = getSuiteStatus(key);
+                    const item = document.createElement("div");
+                    item.className =
+                        "suite-item p-3 rounded-lg flex items-center justify-between text-gray-200";
+                    item.dataset.testKey = key;
+                    item.innerHTML = `
+                <div class="flex items-center overflow-hidden">
+                    <span class="traffic-light ${suiteStatus}"></span>
+                    <span class="truncate">${key}</span>
+                </div>
+            `;
+
+                    item.addEventListener("click", () => {
+                        // Remove 'active' class from all, add to clicked one
+                        document
+                            .querySelectorAll(".suite-item")
+                            .forEach((el) => el.classList.remove("active"));
+                        item.classList.add("active");
+                        document
+                            .getElementById("test-details")
+                            .querySelector("h2").textContent =
+                            `Result Details for: ${key}`;
+                        renderTestDetails(key);
+                    });
+
+                    suiteContainer.appendChild(item);
+                });
+
+                // Auto-select the first test suite on load
+                const firstItem = document.querySelector(".suite-item");
+                if (firstItem) {
+                    firstItem.classList.add("active");
+                    document
+                        .getElementById("test-details")
+                        .querySelector("h2").textContent =
+                        `Result Details for: ${firstItem.dataset.testKey}`;
+                    renderTestDetails(firstItem.dataset.testKey);
+                }
+            }
+
+            function initialize() {
+                const urlParams = new URLSearchParams(window.location.search);
+                let testId = urlParams.get("id");
+
+                fetch("/tests/" + testId + "/results")
+                    .then((response) => {
+                        if (response.status === 200) return response.json();
+                    })
+                    .then((responseJson) => {
+                        for (let key of Object.keys(responseJson.results)) {
+                            responseJson.results[key].reverse();
+                        }
+
+                        rawTestData = responseJson;
+                        renderTestList();
+                    });
+            }
+
+            // Initialize the dashboard once the content is loaded
+            document.addEventListener("DOMContentLoaded", initialize);
+        </script>
+    </body>
+</html>

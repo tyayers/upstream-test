@@ -1,0 +1,27 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: upstream
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containers:
+        - image: europe-west1-docker.pkg.dev/cloud32x/cloud-run-source-deploy/upstream
+          volumeMounts:
+            - name: testfs
+              mountPath: /mnt/tests
+          env:
+            - name: BASE_PATH
+              value: /mnt/tests
+            - name: DEPLOY_DATE
+              value: DEPLOY_DATE_06-11-2025_16-07-02
+      volumes:
+        - name: testfs
+          csi:
+            driver: gcsfuse.run.googleapis.com
+            readOnly: False
+            volumeAttributes:
+              bucketName: upstr-tests
