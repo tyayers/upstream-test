@@ -17,7 +17,7 @@ spec:
             - name: BASE_PATH
               value: /mnt/tests
             - name: DEPLOY_DATE
-              value: DEPLOY_DATE_08-11-2025_18-36-22
+              value: DEPLOY_DATE_08-11-2025_23-05-22
       volumes:
         - name: testfs
           csi:
