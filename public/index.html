@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="initial-scale=1.0" />
         <link rel="icon" type="image/x-icon" href="/favicon.png" />
         <title>Upstream TDD</title>
         <!-- Load Tailwind CSS -->
@@ -67,7 +67,7 @@
                             <a
                                 href="#usage"
                                 class="text-gray-300 hover:text-primary-accent transition duration-150"
-                                >Usage & Pricing</a
+                                >Usage</a
                             >
                             <a
                                 href="https://github.com/tyayers/upstream-tdd"
@@ -312,7 +312,7 @@
             <!-- Usage Section -->
             <section id="usage" class="space-y-12">
                 <h2 class="text-4xl font-bold text-gray-200 text-center">
-                    Usage & Pricing
+                    Usage
                 </h2>
 
                 <!-- Step 1 -->
@@ -323,13 +323,13 @@
                         <h3
                             class="text-2xl font-semibold text-primary-accent mb-2"
                         >
-                            Cheap & Easy as SaaS or Self-Deployment
+                            Simple and Scalable Deployment
                         </h3>
                         <p class="text-gray-400">
-                            The Upstream TDD service is a single container that
-                            just uses a storage directory for tests and results.
-                            Use the SaaS version for unlimited tests completely
-                            for free during the BETA period, or deploy to
+                            The Upstream TDD service is a single container using
+                            a storage directory for tests and results. Use the
+                            SaaS version for unlimited tests for free during the
+                            BETA period, or deploy to
                             <a href="https://cloud.google.com/run"
                                 >Google Cloud Run</a
                             >
@@ -347,7 +347,8 @@
                         <h3
                             class="text-2xl font-semibold text-primary-accent mb-2"
                         >
-                            Edit test cases in the browser or push via REST
+                            Edit test cases in the browser or update via REST
+                            API
                         </h3>
                         <p class="text-gray-400">
                             Test cases can be continually updated in the
@@ -412,14 +413,16 @@
                             class="bg-gray-900 p-4 rounded-lg text-sm overflow-x-auto border border-gray-700 shadow-inner"
                         >
                         <code class="text-white block">
+name: Mock Target Tests v1
 tests:
-  - name: test response headers.Host prop
-    url: https://httpbin.org
-    path: /get
-    verb: GET
-    assertions:
-    - $.headers.Host===httpbin.org
-EOF
+- name: test response payload
+  url: https://mocktarget.apigee.net
+  path: /json
+  verb: GET
+  assertions:
+    - $.firstName==john
+    - $.city==San Jose
+    - response.header.content-length==68
                         </code>
                     </pre>
                     </div>
@@ -441,15 +444,16 @@ EOF
                             class="bg-gray-900 p-4 rounded-lg text-sm overflow-x-auto border border-gray-700 shadow-inner"
                         >
                             <code class="text-white block">
-    tests:
-      - name: test prompt variables
-        url: https://api.mycompany.com
-        path: /gemini
-        verb: POST
-        assertions:
-        - llm.promptInput==why is the sky blue?
-        - llm.extimatedTokenLength==4
-    EOF
+name: Gemini proxy test
+tests:
+  - name: test prompt variables
+    url: https://api.mycompany.com
+    path: /gemini
+    verb: POST
+    assertions:
+      - llm.promptInput==why is the sky blue?
+      - llm.extimatedTokenLength==4
+EOF
                             </code>
                     </pre>
                     </div>

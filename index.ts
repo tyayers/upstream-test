@@ -117,7 +117,11 @@ app.post("/tests", function (req, res) {
           url: "https://mocktarget.apigee.net",
           path: "/json",
           verb: "GET",
-          assertions: ["$.firstName==john", "$.city==San Jose"],
+          assertions: [
+            "$.firstName==john",
+            "$.city==San Jose",
+            "response.header.content-length==68",
+          ],
         },
       ],
     };
@@ -287,6 +291,8 @@ async function runTests(tests: any): Promise<any> {
           reportFormat: "CTRF",
           extra: {
             testCase: testCaseObject.name,
+            response: "",
+            responseHeaders: {},
           },
           results: {
             tool: {
@@ -312,7 +318,10 @@ async function runTests(tests: any): Promise<any> {
             },
           );
           let responseContent = await response.text();
-
+          testResults.extra.response = responseContent;
+          for (let header of response.headers) {
+            testResults.extra.responseHeaders[header[0]] = header[1];
+          }
           checkAssertions(
             testCaseObject,
             testResults,
@@ -424,6 +433,13 @@ function getValue(name: string, context: any, responseContent: any): string {
   let result = "";
   if (name.startsWith("$")) {
     result = jp.query(JSON.parse(responseContent), name);
+  } else if (name.startsWith("response.header")) {
+    let simpleName = name.replace("response.header.", "");
+    result = context.headers.get(simpleName);
+    if (!result) {
+      console.log(`Could not find header ${simpleName}.`);
+      result = "";
+    }
   }
   return result.toString();
 }

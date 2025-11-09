@@ -148,6 +148,8 @@
                             Loading data...
                         </p>
                     </div>
+                    <div id="responseHeaders"></div>
+                    <div id="responseContent"></div>
                 </div>
 
                 <!-- Right Panel: Test Details -->
@@ -324,7 +326,15 @@
 
                     <h4 class="text-lg font-semibold mt-6 mb-3 text-gray-200">Individual Test Cases:</h4>
                     <div class="space-y-2">
-                        ${testCasesHtml}
+                      ${testCasesHtml}
+                    </div>
+                    <h4 class="text-lg font-semibold mt-6 mb-3 text-gray-200">Response headers, if available:</h4>
+                    <div class="p-3 bg-gray-700/50 rounded-md mb-2 text-sm border border-gray-700/80 overflow-y-auto max-h-[140px]">
+                      ${run.extra.responseHeaders ? JSON.stringify(run.extra.responseHeaders) : "Not found."}
+                    </div>
+                    <h4 class="text-lg font-semibold mt-6 mb-3 text-gray-200">Response content, if available:</h4>
+                    <div class="p-3 bg-gray-700/50 rounded-md mb-2 text-sm border border-gray-700/80 overflow-y-auto max-h-[140px]">
+                      ${run.extra.response ? JSON.stringify(run.extra.response) : "Not found."}
                     </div>
                 `;
 
