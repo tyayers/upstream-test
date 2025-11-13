@@ -96,17 +96,16 @@
                     <span
                         class="block bg-clip-text text-transparent bg-gradient-to-r from-primary-accent to-purple-400"
                     >
-                        Simple and Fast TDD.
+                        Upstream TDD for APIs.
                     </span>
                     <span class="block text-gray-200 mt-4"
                         >Test Everything.</span
                     >
                 </h1>
                 <p class="mt-6 text-xl text-gray-400 max-w-3xl mx-auto">
-                    Upstream TDD provides simple and open test case reporting,
-                    from any platform. Watch tests update in real-time,
-                    integrate with both source-code and paas/saas platforms, all
-                    with an open and flexible approach.
+                    Upstream TDD is a free and open source platform to add
+                    detailed unit tests to API traffic & trace data. Because
+                    good testing shouldn't just be for source code.
                 </p>
 
                 <div class="mt-10 flex justify-center">
@@ -132,9 +131,14 @@
             <!-- Features Section -->
             <section id="features" class="grid md:grid-cols-3 gap-8">
                 <div class="md:col-span-3 text-center mb-8">
+                    <!--<div>
+                        <img class="m-auto opacity-[.6] border-radius-[24px]" width="154px" src="/trafficlight.png"></img>
+                    </div>-->
+
                     <h2 class="text-4xl font-bold text-gray-200 mb-2">
                         Background
                     </h2>
+
                     <p class="text-lg text-gray-400">
                         <a
                             href="https://en.wikipedia.org/wiki/Test-driven_development"
@@ -143,8 +147,9 @@
                         is a practice to improve software quality by monitoring
                         detailed test results in a traffic light format. This
                         makes it easier to track quality, and see regressions
-                        quickly. Upstream TDD helps bring TDD to HTTP services &
-                        APIs, without changing program source code.
+                        quickly. Upstream TDD applies this principle to API
+                        traffic & trace data, where quality issues & regressions
+                        can often be detected early, before they reach users.
                     </p>
                 </div>
 
@@ -323,17 +328,40 @@
                         >
                             Simple and Scalable Deployment
                         </h3>
-                        <p class="text-gray-400">
-                            The Upstream TDD service is a single container using
-                            a storage directory for tests and results. Use the
-                            SaaS version for unlimited tests for free during the
-                            BETA period, or deploy to
-                            <a href="https://cloud.google.com/run"
-                                >Google Cloud Run</a
+                        <div class="flex">
+                            <!--<svg
+                                width="320px"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
                             >
-                            with scale-to-zero during non-use for free/cheap
-                            self-deployments.
-                        </p>
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g
+                                    id="SVGRepo_tracerCarrier"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                ></g>
+                                <g id="SVGRepo_iconCarrier">
+                                    <path
+                                        fill-rule="evenodd"
+                                        clip-rule="evenodd"
+                                        d="M12 0H4V2H1V5L4 8H1V11L4 14V16H12V14L15 11V8H12L15 5V2H12V0ZM8 5C8.82843 5 9.5 4.32843 9.5 3.5C9.5 2.67157 8.82843 2 8 2C7.17157 2 6.5 2.67157 6.5 3.5C6.5 4.32843 7.17157 5 8 5ZM8 14C8.82843 14 9.5 13.3284 9.5 12.5C9.5 11.6716 8.82843 11 8 11C7.17157 11 6.5 11.6716 6.5 12.5C6.5 13.3284 7.17157 14 8 14ZM9.5 8C9.5 8.82843 8.82843 9.5 8 9.5C7.17157 9.5 6.5 8.82843 6.5 8C6.5 7.17157 7.17157 6.5 8 6.5C8.82843 6.5 9.5 7.17157 9.5 8Z"
+                                        fill="#0d9488"
+                                    ></path>
+                                </g>
+                            </svg>-->
+                            <p class="text-gray-400">
+                                The Upstream TDD service is a single container
+                                using a storage directory for tests and results.
+                                Use the SaaS version (unsupported) for free, or
+                                deploy to
+                                <a href="https://cloud.google.com/run"
+                                    >Google Cloud Run</a
+                                >, or other container platforms, with
+                                scale-to-zero during non-use for free/cheap
+                                self-deployments.
+                            </p>
+                        </div>
                     </div>
                 </div>
 

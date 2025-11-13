@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<APIProxy revision="44" name="Feature-TESTER-v1">
+<APIProxy revision="48" name="Feature-TESTER-v1">
   <DisplayName/>
   <Description/>
-  <CreatedAt>1762791601079</CreatedAt>
-  <LastModifiedAt>1762791601079</LastModifiedAt>
+  <CreatedAt>1763019781620</CreatedAt>
+  <LastModifiedAt>1763023566138</LastModifiedAt>
   <BasePaths>/feature-tester-v1</BasePaths>
   <Policies>
     <Policy>JS-SetTestData</Policy>
@@ -20,6 +20,7 @@
     <Resource>jsc://templater-manifest.js</Resource>
     <Resource>jsc://run-test.js</Resource>
     <Resource>jsc://set-test-id.js</Resource>
+    <Resource>properties://tester.properties</Resource>
   </Resources>
   <TargetEndpoints>
     <TargetEndpoint>default</TargetEndpoint>

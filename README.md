@@ -1,30 +1,89 @@
 # Upstream TDD
-A simple testing framework for HTTP services, as well as for any other platform that posts test results via a REST Api.
+A simple TDD unit testing framework for APIs and API proxy and management platforms.
 
 ## Getting started
-1. You can use the public deployment at [https://tdd.upstr.dev](https://tdd.upstr.dev), or deploy or run your own version.
-2. First start a test with a curl command. You will get an `id` back that you can use to update and monitor results.
-```sh
-# init test
-curl -X POST https://tdd.upstr.dev/tests -H "Content-Type: application/yaml" \
-  --data-binary @- << EOF
-
+1. You can use the public deployment at [https://tdd.upstr.dev](https://tdd.upstr.dev), or deploy or run your own version (see `2.deploy.sh` script to Google Cloud Run / Cloud Storage).
+2. Click the "Create Test Suite" button to create a suite. The UUID that is shown is your secret to administer and update the tests, it will never be shown again, and should not be committed to any repos.
+3. Click the "Admin Link" to open the admin dashboard. An initial example test is available by default. The `tests` and `assertions` collections can contain as many tests as needed.
+```yaml
+name: Mock Target Tests v1
 tests:
-  - name: test response headers.Host prop
-   	url: https://httpbin.org
-    path: /get
-    verb: get
+  - name: test response payload
+    url: https://mocktarget.apigee.net
+    path: /json
+    method: GET
     assertions:
-      - $.headers.Host===httpbin.org
-EOF
+      - $.firstName==john
+      - $.city==San Jose
+      - response.header.content-length==68
 ```
-3. The `tests` and `assertions` collections can contain as many tests as needed.
-4. To use with Apigee proxies, deploy a proxy with the test policies enabled like in the example in the `apigee` directory.
-5. Monitor the test results at [https://tdd.upstr.dev/dash?id=YOUR_ID](https://tdd.upstr.dev/dash).
+4. A first test run is automatically done, make any changes and re-run by clicking the "Save & Run" button, or doing a REST call. The results are pushed in real-time with SSE to any clients.
+5. Export all tests and results using the "Export All" button, or delete all data with the "Delete All" button.
+6. The "Public Dashboard Link" button opens a read-only version of the dashboard that you can shared with anyone.
 
-## Background info
-- The purpose of this project is to provide a pragmatic, "batteries included" test setup for TDD for different kinds of services, including HTTP and Apigee proxies. Everything is contained in a single service that can easily be deployed anywhere. No database or other infrastructure is required - just a container and a file system, which can easily be provided with scale-to-zero support in [Google Cloud Run](https://cloud.google.com/run) and [Google Cloud Storage](https://cloud.google.com/storage).
-- In this first version, a test UUID is generated when a test suite is created, and which is used to identify the test suite for all subsequent operations. The UUID is never shown again, so it must be treated as a secret that allows a user or client to view / edit / delete the test suite rules and results. This follows the first principle of being pragmatic and fast.
+## Configuration guide
+### Headers
+You can both set and assert header values in tests. This test defnition both sets a header and asserts the `content-length` header as well as the mirrored request headers in the response.
+```yaml
+name: httpbin.org test
+tests:
+  - name: test httpbin get
+    url: https://httpbin.org
+    path: /get
+    method: GET
+    headers:
+      Test-Header: test123
+    assertions:
+      - response.header.content-length===384
+      - $.headers.Host==httpbin.org
+      - $.headers["Test-Header"]==test123
+```
+### Method and Body
+You can both set and assert payload values, as well as set the method. Assertions only work for JSON response payloads using JSONPath. This example POSTS a payload and validates response JSON properties.
+```yaml
+name: httpbin.org test
+tests:
+  - name: test httpbin post
+    url: https://httpbin.org
+    path: /post
+    method: POST
+    headers:
+      Content-Type: application/json
+    body: '{"test1": "test2"}'
+    assertions:
+      - $.headers.Host==httpbin.org
+      - $.json.test1==test2
+```
+### Variables
+Variables can both be set and tested, which is needed to realize the full potential of TDD and unit tests. For this to work for API traffic, the proxy or service processor need to either run the tests in-process to allow for variable testing, or export a trace of all internal variables both before and after processing.
+
+Here is an example of a test that checks the internal variables "llm.promptInput" and "llm.promptEstimatedTokenCount". The "runner" property is also set to "external", because only an external test running in the API platform can verify internal variables.
+
+```yaml
+name: LLM Feature Proxy Tests
+tests:
+  - name: test openai prompt input simple
+    runner: external
+    body: '{"messages": [{"role": "user", "content": "why is the sky blue?"}]}'
+    assertions:
+      - llm.promptInput===why is the sky blue?
+      - llm.promptEstimatedTokenCount===6.666666666666667
+```
+
+### Assertion operations
+These operations are available for assertions.
+- "==" = loosely equals, not accounting for data type or string case.
+- "===" = strictly equals, so data type and string case must be identical.
+- "!=" = loosely not equals
+- "!==" = strictly not equals
+- ":" = string includes
+
+## REST API
+documentation coming soon!
+
+## Apigee proxy deployment
+To deploy the policies to do proxy assertion checks in an Apigee proxy, just include the policies from the example proxy in the `/apigee` directory. A simpler way of adding these policies to an existing proxy temporarilly for testing purposes is coming soon!
 
 ## Credits
 - The frontend code was initially generated by [Gemini 2.5 Flash](https://deepmind.google/models/gemini/flash/), and then adapted and polished based on the requirements.
+- The amazing [CodeMirror](https://codemirror.net/) project is used for test YAML editing in the web client.

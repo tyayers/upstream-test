@@ -12,16 +12,6 @@
     <Request/>
     <Response/>
   </PostFlow>
-  <DefaultFaultRule name="default-fault">
-    <Step>
-      <Name>JS-RunTest</Name>
-      <Condition>upstream.testCase != null</Condition>
-    </Step>
-    <Step>
-      <Name>SC-SaveResults</Name>
-      <Condition>upstream.testResults != null</Condition>
-    </Step>
-  </DefaultFaultRule>
   <EventFlow name="EventFlow" content-type="text/event-stream">
     <Response/>
   </EventFlow>

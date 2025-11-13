@@ -7,15 +7,14 @@
     <Request>
       <Step>
         <Name>JS-SetTestIds</Name>
-        <Condition>request.header.x-upstream-id != null</Condition>
       </Step>
       <Step>
         <Name>SC-GetTestCases</Name>
-        <Condition>request.header.x-upstream-id != null</Condition>
+        <Condition>upstream.testId != null</Condition>
       </Step>
       <Step>
         <Name>JS-SetTestData</Name>
-        <Condition>request.header.x-upstream-id != null</Condition>
+        <Condition>upstream.testId != null</Condition>
       </Step>
     </Request>
     <Response/>
@@ -34,6 +33,7 @@
     </Response>
   </PostFlow>
   <DefaultFaultRule name="default-fault">
+    <AlwaysEnforce>true</AlwaysEnforce>
     <Step>
       <Name>JS-RunTest</Name>
       <Condition>upstream.testCase != null</Condition>

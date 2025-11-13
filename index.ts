@@ -40,10 +40,9 @@ app.get("/tests/:id", function (req, res) {
       "utf8",
     );
     let tests = YAML.parse(fileContents);
-    if (req.params.id == tests.viewId) {
-      // only view id was sent, so remove test id before returning to client.
-      delete tests.id;
-    }
+    // no not send ids in the result
+    delete tests.viewId;
+    delete tests.id;
     if (responseType == "application/yaml") {
       res.setHeader("Content-Type", "application/yaml");
       res.send(
@@ -268,6 +267,8 @@ app.post("/tests/:id/run", async (req, res) => {
     if (tests.id === req.params.id) {
       let tests: any = req.body;
       if (tests && requestType == "application/yaml") tests = YAML.parse(tests);
+      tests.id = req.params.id;
+      tests.viewId = viewId;
       if (tests) saveTests(tests, requestType);
 
       if (!tests && fs.existsSync(`${basePath}/${viewId}/tests.yaml`)) {
@@ -425,56 +426,65 @@ app.get("/events", (req, res) => {
 async function runTests(tests: any): Promise<any> {
   return new Promise(async (resolve, reject) => {
     let results: any[] = [];
-    if (tests.tests) {
-      for (let testCaseObject of tests.tests) {
-        var testResults = {
-          reportFormat: "CTRF",
-          extra: {
-            testCase: testCaseObject.name,
-            response: "",
-            responseHeaders: {},
-          },
-          results: {
-            tool: {
-              name: "upstr",
-            },
-            summary: {
-              tests: 0,
-              passed: 0,
-              failed: 0,
-              start: Date.now(),
-              stop: Date.now(),
-            },
-            tests: [],
-          },
-        };
 
-        if (testCaseObject.url) {
-          let response = await fetch(
-            testCaseObject.url + (testCaseObject.path ?? ""),
-            {
-              method: testCaseObject.method ?? "GET",
-              body: testCaseObject.body,
-              headers: testCaseObject.headers,
+    try {
+      if (tests.tests) {
+        for (let testCaseObject of tests.tests) {
+          var testResults = {
+            reportFormat: "CTRF",
+            extra: {
+              testCase: testCaseObject.name,
+              response: "",
+              responseHeaders: {},
             },
-          );
-          let responseContent = await response.text();
-          testResults.extra.response = responseContent;
-          for (let header of response.headers) {
-            testResults.extra.responseHeaders[header[0]] = header[1];
+            results: {
+              tool: {
+                name: "upstr",
+              },
+              summary: {
+                tests: 0,
+                passed: 0,
+                failed: 0,
+                start: Date.now(),
+                stop: Date.now(),
+              },
+              tests: [],
+            },
+          };
+
+          if (testCaseObject.url && testCaseObject.runner != "external") {
+            let response = await fetch(
+              testCaseObject.url + (testCaseObject.path ?? ""),
+              {
+                method: testCaseObject.method ?? "GET",
+                body: testCaseObject.body,
+                headers: testCaseObject.headers,
+              },
+            );
+            let responseContent = await response.text();
+            testResults.extra.response = responseContent;
+            for (let header of response.headers) {
+              testResults.extra.responseHeaders[header[0]] = header[1];
+            }
+            checkAssertions(
+              testCaseObject,
+              testResults,
+              response,
+              responseContent,
+            );
+            testResults.results.summary.stop = Date.now();
+            results.push(testResults);
+            updateResults(tests.viewId, testResults);
+            updateTestCaseResults(
+              tests.viewId,
+              testCaseObject.name,
+              testResults,
+            );
           }
-          checkAssertions(
-            testCaseObject,
-            testResults,
-            response,
-            responseContent,
-          );
-          testResults.results.summary.stop = Date.now();
-          results.push(testResults);
-          updateResults(tests.viewId, testResults);
-          updateTestCaseResults(tests.viewId, testCaseObject.name, testResults);
         }
       }
+    } catch (e) {
+      console.log(`ERROR testing ${tests.name}: ${e.message}`);
     }
 
     resolve(results);
@@ -621,15 +631,19 @@ function checkAssertions(
 
 function getValue(name: string, context: any, responseContent: any): string {
   let result = "";
-  if (name.startsWith("$")) {
-    result = jp.query(JSON.parse(responseContent), name);
-  } else if (name.startsWith("response.header")) {
-    let simpleName = name.replace("response.header.", "");
-    result = context.headers.get(simpleName);
-    if (!result) {
-      console.log(`Could not find header ${simpleName}.`);
-      result = "";
+  try {
+    if (name.startsWith("$")) {
+      result = jp.query(JSON.parse(responseContent), name);
+    } else if (name.startsWith("response.header")) {
+      let simpleName = name.replace("response.header.", "");
+      result = context.headers.get(simpleName);
+      if (!result) {
+        console.log(`Could not find header ${simpleName}.`);
+        result = "";
+      }
     }
+  } catch (e) {
+    console.error(`ERROR getValue: ${name} - ${e.message}`);
   }
   return result.toString();
 }
@@ -779,8 +793,10 @@ function updateTestCaseResults(
   return result;
 }
 
-app.listen("8080", () => {
-  console.log(`app listening on port 8080`);
+app.listen(process.env.PORT ? process.env.PORT : "8080", () => {
+  console.log(
+    `app listening on port ${process.env.PORT ? process.env.PORT : "8080"}`,
+  );
 });
 
 process.on("beforeExit", (code) => {

@@ -11,6 +11,7 @@
         <script src="https://unpkg.com/lucide@latest"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.js"></script>
 
         <style>
             /* Custom scrollbar for dark theme */
@@ -485,7 +486,7 @@
                                 Delete
                                 <i data-lucide="trash" class="w-4 h-4 ml-2"></i>
                             </button>
-                            <a href="/test?id=${testId + "&caseId=" + testName}" target="_blank" class="mt-1 w-full lg:w-auto inline-flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">
+                            <a href="/test?id=${viewId + "&caseId=" + testName}" target="_blank" class="mt-1 w-full lg:w-auto inline-flex items-center justify-center bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">
                                 View Detailed Report
                                 <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                             </a>
@@ -531,6 +532,22 @@
                 if (response.status == 200) {
                     let responseContent = await response.text();
 
+                    const yaml = jsyaml.load(responseContent);
+                    let name = yaml.name;
+                    let dashboardLabelElement =
+                        document.getElementById("dashboardTypeLabel");
+                    if (dashboardLabelElement) {
+                        if (testId === viewId) {
+                            // view mode
+                            dashboardLabelElement.innerHTML =
+                                " Dashboard " + name;
+                        } else {
+                            // admin mode
+                            dashboardLabelElement.innerHTML =
+                                " Admin Dashboard " + name;
+                        }
+                    }
+
                     const textarea = document.getElementById(
                         "yaml-editor-textarea",
                     );
@@ -541,9 +558,18 @@
                         indentUnit: 2,
                         tabSize: 2,
                         smartIndent: true,
-                        autofocus: true,
+                        autofocus: false,
                         lineWrapping: true,
                         matchBrackets: true,
+                    });
+
+                    editor.setOption("extraKeys", {
+                        Tab: function (cm) {
+                            var spaces = Array(
+                                cm.getOption("indentUnit") + 1,
+                            ).join(" ");
+                            cm.replaceSelection(spaces);
+                        },
                     });
 
                     // Make CodeMirror take up full height of its container
@@ -632,6 +658,22 @@
                 }).then((response) => {
                     console.log(response);
                 });
+
+                // update name in case changed
+                const yaml = jsyaml.load(config);
+                let name = yaml.name;
+                let dashboardLabelElement =
+                    document.getElementById("dashboardTypeLabel");
+                if (dashboardLabelElement) {
+                    if (testId === viewId) {
+                        // view mode
+                        dashboardLabelElement.innerHTML = " Dashboard " + name;
+                    } else {
+                        // admin mode
+                        dashboardLabelElement.innerHTML =
+                            " Admin Dashboard " + name;
+                    }
+                }
             }
 
             function deleteTestCase(testCaseId) {
